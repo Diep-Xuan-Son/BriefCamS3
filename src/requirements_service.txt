@@ -1,0 +1,6 @@
+flask
+flask-restx
+rq
+flask_cors
+flask_sqlalchemy
+mysqlclient

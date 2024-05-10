@@ -1,0 +1,6 @@
+path: datasets/IOClock  # dataset root dir
+train: images  # train images (relative to 'path') 128 images
+val: images
+
+nc: 4
+names: ['I_new', 'O_new', 'I_old', 'O_old']

@@ -1,0 +1,12 @@
+#------test------
+python detect.py --weights weights/HVS150Ep.pt --imgsz 640 --conf-thres 0.5 --iou-thres 0.25 --device 0 --source dataTest/dc1.mp4 --save-txt
+
+python detect.py --weights weights/1950Steel_yolov5l.pt --imgsz 640 --conf-thres 0.5 --iou-thres 0.25 --device 0 --source dataTest/1.jpeg --exist-ok --nosave
+
+python detect.py --weights weights/detect_belt.pt --imgsz 640 --conf-thres 0.5 --iou-thres 0.25 --device 0 --source dataTest/belt3.mp4 --view-img
+
+#-----train-------
+python train.py --weights weights/yolov5x.pt --data data/IOClock.yaml --epochs 200 --batch-size 16 --imgsz 640 --device 0
+
+#---error image----------
+mogrify -set comment 'Extraneous bytes removed' *.jpg

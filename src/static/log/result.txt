@@ -1,0 +1,1 @@
+http://s3.openstack.demo.mqsolutions.vn/v1/AUTH_2124913abbf7435da225ded55d7d977f/video_summary/7F0A177PAJ05BCF/2023-10-12/1697092200_1697093100.mp4

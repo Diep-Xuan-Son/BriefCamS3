@@ -1,0 +1,6 @@
+path: datasets/dataVehicle  # dataset root dir
+train: images  # train images (relative to 'path') 128 images
+val: images  # val images (relative to 'path') 128 images
+test:  # test images (optional)
+nc: 9
+names: ['Bulldozer', 'Dump truck', 'Excavator', 'Forklift', 'Scraper', 'Loader', 'MEWP', 'Mobile crane', 'Remicon']
