@@ -112,16 +112,85 @@ def get_merge_video(start_times, end_times, camseris, url_auth, url_access, fold
 		return {"video": None}
 
 def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_access, folder_storage="videos_storage", job_id=""):
-	auth_token, subject_token = get_token(url_auth)
-	headers = {
-	  'X-Auth-Token': subject_token
-	}
-	if auth_token is not None:
-		url = f"{url_access}/{auth_token}/{folder_storage}"
+	if url_access.startswith(("http","https")):
+		auth_token, subject_token = get_token(url_auth)
+		headers = {
+		  'X-Auth-Token': subject_token
+		}
+		if auth_token is not None:
+			url = f"{url_access}/{auth_token}/{folder_storage}"
 
-		# starttime = datetime(2023,10,12,13,30).timestamp()
-		# endtime = datetime(2023,10,12,13,45).timestamp()
-		# camseri = 99
+			# starttime = datetime(2023,10,12,13,30).timestamp()
+			# endtime = datetime(2023,10,12,13,45).timestamp()
+			# camseri = 99
+			path_merged = f'{str(ROOT)}/static/video/video_merged/{job_id}'
+			if not os.path.exists(path_merged):
+				os.mkdir(path_merged)
+			path_download = f'{str(ROOT)}/static/video/video_download/{job_id}'
+			if not os.path.exists(path_download):
+				os.mkdir(path_download)
+
+			path_videos = []
+			for i, starttime in enumerate(start_times):
+				endtime = end_times[i]
+				camseri = camseris[i]
+				# camseri = "99"
+				path_video_merged = f'{path_merged}/{starttime}_{endtime}.mp4'
+				path_info_merged = f'{os.path.splitext(path_video_merged)[0]}.txt'
+				ftxt = open(path_info_merged, 'w')
+
+				list_date = pd.date_range(start=date.fromtimestamp(starttime), end=date.fromtimestamp(endtime))
+				# print("----list_date: ", list_date)
+				for dt in list_date.values:
+					dt = str(dt).split("T")[0]
+					response = requests.request("GET", f"{url}?prefix={camseri}/{dt}", headers=headers, data={})
+					list_file = response.text.split("\n")
+					# print(list_file)
+					for file in list_file:
+						if not file.endswith(".mp4"):
+							continue
+						# print(file)
+						name_vid = os.path.splitext(os.path.basename(file))[0]
+						stts = int(name_vid.split("_")[0])
+						ents = int(name_vid.split("_")[1])
+						# print(stts)
+						if (starttime <= stts and stts < endtime) or (starttime < ents and ents <= endtime): 
+							# print(stts)
+							r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
+							path_video_5m = f'{path_download}/{stts}_{ents}.mp4'
+							open(path_video_5m, 'wb').write(r.content)
+
+							if endtime < ents:
+								targetname = f'{path_download}/{stts}_{endtime}.mp4'
+								ffmpeg_extract_subclip(path_video_5m, 0, int(endtime-stts), targetname=targetname)
+								path_video_5m = targetname
+							if starttime > stts:
+								targetname = f'{path_download}/{starttime}_{ents}.mp4'
+								ffmpeg_extract_subclip(path_video_5m, int(starttime-stts), int(ents-stts), targetname=targetname)
+								path_video_5m = targetname
+
+							ftxt.write(f"file '{path_video_5m}'\n")
+						elif (stts < starttime < ents) and (stts < endtime < ents):
+							r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
+							path_video_5m = f'{path_download}/{stts}_{ents}.mp4'
+							open(path_video_5m, 'wb').write(r.content)
+
+							targetname = f'{path_download}/{starttime}_{endtime}.mp4'
+							ffmpeg_extract_subclip(path_video_5m, int(starttime-stts), int(endtime-stts), targetname=targetname)
+							path_video_5m = targetname
+
+							ftxt.write(f"file '{path_video_5m}'\n")
+
+				ftxt.close()
+
+				subprocess.call(['ffmpeg', '-f', 'concat', '-safe', '0', '-y', '-i', path_info_merged, '-c', 'copy', path_video_merged])
+				path_videos.append(path_video_merged)
+			return {"video": path_videos}
+
+		else:
+			return {"video": None}
+
+	else:
 		path_merged = f'{str(ROOT)}/static/video/video_merged/{job_id}'
 		if not os.path.exists(path_merged):
 			os.mkdir(path_merged)
@@ -139,25 +208,26 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 			ftxt = open(path_info_merged, 'w')
 
 			list_date = pd.date_range(start=date.fromtimestamp(starttime), end=date.fromtimestamp(endtime))
-			# print("----list_date: ", list_date)
 			for dt in list_date.values:
 				dt = str(dt).split("T")[0]
-				response = requests.request("GET", f"{url}?prefix={camseri}/{dt}", headers=headers, data={})
-				list_file = response.text.split("\n")
+				path_video_storage = f"{url_access}/{folder_storage}/{camseri}/{dt}".replace("-", "_")
+				list_file = os.listdir(path_video_storage)
+				# print(list_file)
+				# exit()
 				# print(list_file)
 				for file in list_file:
 					if not file.endswith(".mp4"):
 						continue
 					# print(file)
 					name_vid = os.path.splitext(os.path.basename(file))[0]
-					stts = int(name_vid.split("_")[0])
-					ents = int(name_vid.split("_")[1])
+					stts = int(name_vid.split("_")[1])
+					ents = int(name_vid.split("_")[2])
 					# print(stts)
 					if (starttime <= stts and stts < endtime) or (starttime < ents and ents <= endtime): 
 						# print(stts)
-						r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
-						path_video_5m = f'{path_download}/{stts}_{ents}.mp4'
-						open(path_video_5m, 'wb').write(r.content)
+						# r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
+						path_video_5m = f'{path_video_storage}/video_{stts}_{ents}.mp4'
+						# open(path_video_5m, 'wb').write(r.content)
 
 						if endtime < ents:
 							targetname = f'{path_download}/{stts}_{endtime}.mp4'
@@ -170,9 +240,9 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 
 						ftxt.write(f"file '{path_video_5m}'\n")
 					elif (stts < starttime < ents) and (stts < endtime < ents):
-						r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
-						path_video_5m = f'{path_download}/{stts}_{ents}.mp4'
-						open(path_video_5m, 'wb').write(r.content)
+						# r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
+						path_video_5m = f'{path_video_storage}/video_{stts}_{ents}.mp4'
+						# open(path_video_5m, 'wb').write(r.content)
 
 						targetname = f'{path_download}/{starttime}_{endtime}.mp4'
 						ffmpeg_extract_subclip(path_video_5m, int(starttime-stts), int(endtime-stts), targetname=targetname)
@@ -186,5 +256,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 			path_videos.append(path_video_merged)
 		return {"video": path_videos}
 
-	else:
-		return {"video": None}
+
+if __name__=="__main__":
+	param = {"start_times": [1716188543], "end_times": [1716188563], "camseris": ["7M09FDDGAJ96B00"], "url_auth": "sad", "url_access": f"{str(ROOT)}/videoTest", "folder_storage": "storage", "job_id": "abcd1234"}
+	path_video = get_merge_video_custom(**param)
+	print(path_video)

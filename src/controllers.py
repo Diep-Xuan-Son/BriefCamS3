@@ -151,5 +151,10 @@ class stopJob(Resource):
 # 		except Exception as e:
 # 			return {"success": False, "error": str(e)}
 
+@api.route('/healthcheck')
+class health_check(Resource):
+	def get(self):
+		return { 'success': True, 'message': "healthy" }
+
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=3456, debug=True)

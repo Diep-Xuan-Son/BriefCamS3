@@ -496,29 +496,43 @@ def track_briefcam(inputts, objectt, type_vehicle, start_times, camseris, ipaddr
 		outputt.append(run(**vars(opt)))
 	# return path_output
 	# q_output.put(outputt)
-	#because of limited time in token, need to get token again after finished briefcam
-	auth_token, subject_token = get_token(url_auth)
-	headers = {'X-Auth-Token': subject_token}
-	URL_VIDEOBRIEF_STORAGE = f"{url_access}/{auth_token}/{folder_summary}"
-	percentComplete = 95
-	with open(os.path.join(PATH_LOG_ABSOLUTE,f'{job_id}/result.txt'), 'w') as f:
-		for i, output in enumerate(outputt):
-			# url = URL_VIDEOBRIEF_STORAGE + f"/{camseris[i]}/{date.fromtimestamp(start_times[i])}/{os.path.basename(inputts[i])}"
-			url = URL_VIDEOBRIEF_STORAGE + f"/{camseris[i]}/{date.fromtimestamp(start_times[i])}/{os.path.basename(inputts[i])}"
-			payload = open(output, 'rb')
-			response = requests.request("PUT", url, headers=headers, data=payload)
-			# if response.ok:
-			f.write("%s\n" % url)
+	if url_access.startswith(("http","https")):
+		#because of limited time in token, need to get token again after finished briefcam
+		auth_token, subject_token = get_token(url_auth)
+		headers = {'X-Auth-Token': subject_token}
+		URL_VIDEOBRIEF_STORAGE = f"{url_access}/{auth_token}/{folder_summary}"
+		percentComplete = 95
+		with open(os.path.join(PATH_LOG_ABSOLUTE,f'{job_id}/result.txt'), 'w') as f:
+			for i, output in enumerate(outputt):
+				# url = URL_VIDEOBRIEF_STORAGE + f"/{camseris[i]}/{date.fromtimestamp(start_times[i])}/{os.path.basename(inputts[i])}"
+				url = URL_VIDEOBRIEF_STORAGE + f"/{camseris[i]}/{date.fromtimestamp(start_times[i])}/{os.path.basename(inputts[i])}"
+				payload = open(output, 'rb')
+				response = requests.request("PUT", url, headers=headers, data=payload)
+				# if response.ok:
+				f.write("%s\n" % url)
 
-			percentComplete = (0.95 + (i+1)*0.05)*100
-	print("-------response: ", response.ok)
-	if response.ok:
+				percentComplete = (0.95 + (i+1)*0.05)*100
+		print("-------response: ", response.ok)
+		if response.ok:
+			delete_output(job_id)
+	else:
+		URL_VIDEOBRIEF_STORAGE = f"{url_access}/{folder_summary}"
+		if not os.path.exists(URL_VIDEOBRIEF_STORAGE):
+			os.makedirs(URL_VIDEOBRIEF_STORAGE, exist_ok=True)
+		percentComplete = 95
+		with open(os.path.join(PATH_LOG_ABSOLUTE,f'{job_id}/result.txt'), 'w') as f:
+			for i, output in enumerate(outputt):
+				url = URL_VIDEOBRIEF_STORAGE + f"/{camseris[i]}/{date.fromtimestamp(start_times[i])}/{os.path.basename(inputts[i])}"
+				if not os.path.exists(os.path.dirname(url)):
+					os.makedirs(os.path.dirname(url), exist_ok=True)
+				shutil.copy(output, url)
+				f.write("%s\n" % url)
+				percentComplete = (0.95 + (i+1)*0.05)*100
 		delete_output(job_id)
 
 	with open(os.path.join(PATH_LOG_ABSOLUTE,f'{job_id}/percent.txt'), 'w') as f:
 		f.write(f"{percentComplete:.2f}")
 
-	
 
 def delete_log(job_id):
 	try:
