@@ -210,7 +210,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 			list_date = pd.date_range(start=date.fromtimestamp(starttime), end=date.fromtimestamp(endtime))
 			for dt in list_date.values:
 				dt = str(dt).split("T")[0]
-				path_video_storage = f"{url_access}/{folder_storage}/{camseri}/{dt}".replace("-", "_")
+				# path_video_storage = f"{url_access}/{folder_storage}/{camseri}/{dt}".replace("-", "_")
+				path_video_storage = f"{url_access}/{folder_storage}/{camseri}/{dt.replace('-', '_')}"
 				list_file = os.listdir(path_video_storage)
 				# print(list_file)
 				# exit()

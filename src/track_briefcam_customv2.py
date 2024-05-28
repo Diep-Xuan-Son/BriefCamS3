@@ -480,7 +480,7 @@ def track_briefcam(inputts, objectt, type_vehicle, start_times, camseris, ipaddr
 	opt = parse_opt()
 	opt.yolo_weights = weight
 	opt.classes = classs
-	opt.device = '0'
+	opt.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 	# opt.q_com = q_com
 	opt.ipaddress = ipaddress
 	opt.fps_result = fps_result
