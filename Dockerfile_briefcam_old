@@ -1,0 +1,41 @@
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Ho_Chi_Minh
+
+RUN apt-get update && \
+	apt install software-properties-common -y && \
+	add-apt-repository ppa:deadsnakes/ppa -y && \
+	apt-get install -y python3.11 python3.11-distutils
+
+RUN	apt-get install -y \
+			python3-pip \
+			python3.11-dev \
+			ffmpeg \
+			nano \
+			curl
+
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+
+RUN python3.11 -m pip install --upgrade pip
+
+WORKDIR /briefcam
+COPY requirements.txt /briefcam/requirements.txt
+
+RUN python3.11 -m pip --no-cache-dir install protobuf==3.20.*
+
+RUN python3.11 -m pip --no-cache-dir install --ignore-installed -r /briefcam/requirements.txt
+
+COPY ./src /briefcam
+
+ENV REDISTOGO_URL=redis://171.244.5.181:6380
+ENV URL_ACCESS=""
+ENV FOLDER_STORAGE=storage
+
+# CMD ["python3.11", "controller.py"]
+
+# docker build -t mq/briefcam --load --rm -f Dockerfile_briefcam .
+# docker run -d -p 3456:3456 --gpus all --name briefcam mq/briefcam
+# docker run -d -p 3456:3456 -v %cd%/src/weights:/briefcam/weights --name briefcam mq/briefcam
+
+# export REDISTOGO_URL=redis://192.168.6.159:6380

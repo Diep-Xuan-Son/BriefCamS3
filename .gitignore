@@ -1,4 +1,6 @@
 /src/weights/crowdhuman_yolov5m.pt
-__pycache__
+__pycache__/
 **/__pycache__
 *.pyc
+/video_summary
+/video_test

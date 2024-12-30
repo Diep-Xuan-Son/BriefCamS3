@@ -1,0 +1,8 @@
+NUM_WORKERS:  2
+[<Process name='Process-1' pid=1200075 parent=1200058 started>, <Process name='Process-2' pid=1200076 parent=1200058 started>]
+14:28:07 Worker rq:worker:26f5c6bb5e4346cd9f62daaf22d6ec9a started with PID 1200076, version 1.15.0
+14:28:07 Worker rq:worker:0b0a0c136e994addac5041b4877f3e22 started with PID 1200075, version 1.15.0
+14:28:07 Subscribing to channel rq:pubsub:26f5c6bb5e4346cd9f62daaf22d6ec9a
+14:28:07 Subscribing to channel rq:pubsub:0b0a0c136e994addac5041b4877f3e22
+14:28:07 *** Listening on default...
+14:28:07 *** Listening on default...

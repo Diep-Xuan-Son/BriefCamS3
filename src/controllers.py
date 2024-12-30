@@ -33,12 +33,12 @@ class briefCam(Resource):
 		try:
 			print("---start_times: ", args['start_times'])
 			print("---end_times: ", args['end_times'])
-			inputts = get_merge_video_custom(args['start_times'], args['end_times'], args['cam_serials'], url_auth=URL_AUTH, url_access=URL_ACCESS, folder_storage=FOLDER_STORAGE, job_id=job_id)
-			print("-------------inputts: ", inputts)
-			inputts = inputts["video"]
+			inps = get_merge_video_custom(args['start_times'], args['end_times'], args['cam_serials'], url_auth=URL_AUTH, url_access=URL_ACCESS, folder_storage=FOLDER_STORAGE, job_id=job_id)
+			print("-------------inps: ", inps)
+			inputts = inps["video"]
 			# inputts = ["videoTest/video7.mp4"]
 			if inputts is None:
-				return {"success": False, "error": {"message": f"Authetic token is wrong"}}
+				return {"success": False, "error": {"message": inps["error"]}}
 
 			not_exists = []
 			for inputt in inputts:

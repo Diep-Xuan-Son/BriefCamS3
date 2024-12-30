@@ -43,7 +43,7 @@ scikit-video
 
 flask
 flask-restx
-rq
+rq==1.16.2
 flask_cors
 
 ipython

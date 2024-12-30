@@ -109,7 +109,7 @@ def get_merge_video(start_times, end_times, camseris, url_auth, url_access, fold
 		return {"video": path_videos}
 
 	else:
-		return {"video": None}
+		return {"video": None, "error": "Authentication token is None"}
 
 def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_access, folder_storage="videos_storage", job_id=""):
 	if url_access.startswith(("http","https")):
@@ -146,6 +146,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 					response = requests.request("GET", f"{url}?prefix={camseri}/{dt}", headers=headers, data={})
 					list_file = response.text.split("\n")
 					# print(list_file)
+					if len(list_file)==0:
+						return {"video": None, "error": "File video playback in this duration does not exist"}
 					for file in list_file:
 						if not file.endswith(".mp4"):
 							continue
@@ -158,6 +160,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 							# print(stts)
 							r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
 							path_video_5m = f'{path_download}/{stts}_{ents}.mp4'
+							if not os.path.exists(path_video_5m):
+								return {"video": None, "error": "File video playback in this duration does not exist"}
 							open(path_video_5m, 'wb').write(r.content)
 
 							if endtime < ents:
@@ -173,6 +177,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 						elif (stts < starttime < ents) and (stts < endtime < ents):
 							r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
 							path_video_5m = f'{path_download}/{stts}_{ents}.mp4'
+							if not os.path.exists(path_video_5m):
+								return {"video": None, "error": "File video playback in this duration does not exist"}
 							open(path_video_5m, 'wb').write(r.content)
 
 							targetname = f'{path_download}/{starttime}_{endtime}.mp4'
@@ -188,7 +194,7 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 			return {"video": path_videos}
 
 		else:
-			return {"video": None}
+			return {"video": None, "error": "Authentication token is None"}
 
 	else:
 		path_merged = f'{str(ROOT)}/static/video/video_merged/{job_id}'
@@ -213,6 +219,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 				# path_video_storage = f"{url_access}/{folder_storage}/{camseri}/{dt}".replace("-", "_")
 				path_video_storage = f"{url_access}/{folder_storage}/{camseri}/{dt.replace('-', '_')}"
 				list_file = os.listdir(path_video_storage)
+				if len(list_file)==0:
+					return {"video": None, "error": "File video playback in this duration does not exist"}
 				# print(list_file)
 				# exit()
 				# print(list_file)
@@ -228,6 +236,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 						# print(stts)
 						# r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
 						path_video_5m = f'{path_video_storage}/video_{stts}_{ents}.mp4'
+						if len(list_file)==0:
+							return {"video": None, "error": "File video playback in this duration does not exist"}
 						# open(path_video_5m, 'wb').write(r.content)
 
 						if endtime < ents:
@@ -243,6 +253,8 @@ def get_merge_video_custom(start_times, end_times, camseris, url_auth, url_acces
 					elif (stts < starttime < ents) and (stts < endtime < ents):
 						# r = requests.get(url+f"/{camseri}/{date.fromtimestamp(stts)}/{stts}_{ents}.mp4", headers=headers, allow_redirects=True)
 						path_video_5m = f'{path_video_storage}/video_{stts}_{ents}.mp4'
+						if len(list_file)==0:
+							return {"video": None, "error": "File video playback in this duration does not exist"}
 						# open(path_video_5m, 'wb').write(r.content)
 
 						targetname = f'{path_download}/{starttime}_{endtime}.mp4'

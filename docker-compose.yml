@@ -22,7 +22,7 @@ services:
     # command: redis-server /usr/local/etc/redis/redis.conf
 
   briefcam:
-    image: mq/briefcam
+    image: dixuson/briefcam
     container_name: briefcam
     restart: always
     # depends_on:
@@ -30,23 +30,36 @@ services:
     #     condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl --fail http://localhost:3456/api/healthcheck || exit 1"]
+      interval: 5m
+      timeout: 30s
+      retries: 3
     environment:
-      - REDISTOGO_URL = redis://192.168.6.159:6380
-      - URL_AUTH = http://openstack.test.mqsolutions.vn/identity/v3/auth/tokens
-      - URL_ACCESS = http://s3.openstack.test.mqsolutions.vn/v1
-      - FOLDER_STORAGE = videos_storage
-      - FOLDER_SUMMARY = video_summary
+      REDISTOGO_URL: "redis://192.168.6.163:6381"
+      # URL_AUTH: "http://openstack.test.mqsolutions.vn/identity/v3/auth/tokens"
+      URL_AUTH: ""
+      # URL_ACCESS: "http://s3.openstack.test.mqsolutions.vn/v1"
+      URL_ACCESS: ""
+      FOLDER_STORAGE: "videos_storage"
+      FOLDER_SUMMARY: "video_summary"
     build:
       dockerfile: Dockerfile_briefcam
     ports: 
       - "3456:3456"
-    # volumes:
-    #   - .:/workspace/
+    volumes:
+      - ./video_test:/videos_storage/
+      - ./video_summary:/video_summary/
     networks:
       mynetwork:
     profiles:
       - briefcam
-    command: sh -c "nohup python3 worker.py & python3 controllers.py"
+    command: sh -c "nohup python3 worker.py > nohup_log.txt & python3 controllers.py"
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            device_ids: ['0']
+            capabilities: [gpu]
 
 
 # docker compose -f docker-compose.yml --profile dev1 up -d
